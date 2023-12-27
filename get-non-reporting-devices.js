@@ -1,6 +1,8 @@
 /*
   Gets a list of devices that haven't reported for a set number of days.
 
+  Example flow: https://homey.app/sv-se/flow/Jk5JJO/
+
   Returns true if any devices haven't reported in the specified time
   and outputs a list of devices to a tag that can be used in flows
 
