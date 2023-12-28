@@ -7,6 +7,9 @@
   and outputs a list of devices to a tag that can be used in flows
 
   Variables:
+    ignoredNames: list of ignored names separated by |.
+    Uses partial matching. Case sensitive.
+
     notReportedForDays: How long ago in days where the device should count as offline
     Overridden if the script is run with an argument.
 
@@ -23,6 +26,7 @@
 
 let notReportedForDays = 7;
 
+const ignoredNames = "";
 const ignoredApps = "vdevice|com.arjankranenburg.virtual";
 const ignoredClasses = "";
 
@@ -49,6 +53,7 @@ let resultText = "";
 // Loop over all devices
 for (const device of Object.values(devices)) {
   if (!device.capabilitiesObj || device.capabilities.length == 0) continue;
+  if (ignoredNames && device.name.match(ignoredNames)) continue;
   if (ignoredApps && device.ownerUri.match(ignoredApps)) continue;
   if (ignoredClasses && device.class.match(ignoredClasses)) continue;
 
