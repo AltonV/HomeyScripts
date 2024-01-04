@@ -10,4 +10,5 @@ By default virtual devices are ignored.
 <img alt="Example flow for the get-non-reporting-devices.js script" height="450" src="https://github.com/AltonV/HomeyScripts/blob/main/pictures/get-non-reporting-devices-example-flow.png" />
 
 ## is-any-light-on.js
-Returns true/false depending on whether any light (or device set to light) is on or off.
+Returns true/false depending on whether any light (or device set to light) is on or off.\
+You can specify which zones to check by providing them with an argument and separating them with |
