@@ -1,6 +1,6 @@
 /*
   Gets a list of devices that haven't reported for a set number of days.
-  Updated: 2023-12-29
+  Updated: 2023-01-30
 
   Example flow: https://github.com/AltonV/HomeyScripts/blob/main/pictures/get-non-reporting-devices-example-flow.png
 
