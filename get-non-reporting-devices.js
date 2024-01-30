@@ -95,6 +95,6 @@ for (const device of Object.values(devices)) {
 
 console.log(resultText);
 
-tag(tagName, resultText);
+await tag(tagName, resultText);
 
 return result;
