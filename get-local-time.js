@@ -1,5 +1,5 @@
 /*
-  Gets the time in the local timezone
+  Gets the time in the local timezone and format
 */
 
 let sys = await Homey.system.getInfo();
