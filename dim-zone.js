@@ -72,7 +72,7 @@ for (const device of Object.values(devices)) {
   if (args.length && include_subzones && !allZonesId.includes(device.zone)) continue;
 
   if (device.capabilitiesObj.dim) {
-    let val = (relative ? device.capabilitiesObj.dim.value + dimVal : dimVal);
+    let val = (relative && device.capabilitiesObj.onoff.value ? device.capabilitiesObj.dim.value + dimVal : dimVal);
     device.setCapabilityValue('dim', val);  // Dim the light
     dimValArr.push(val);
     if (delay_between_devices > 0) await wait(delay_between_devices);
