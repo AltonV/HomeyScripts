@@ -1,100 +1,100 @@
 /*
-  Gets a list of devices that haven't reported for a set number of days.
-  Updated: 2023-01-30
+  Updated: 2025-01-02
+
+  This script identifies unresponsive devices in Homey by checking if the last update time of their capabilities exceeds configured thresholds.
+  A device is considered unresponsive only if all of its capabilities exceed the threshold.
+  The script returns true if any device is unresponsive and add the affected devices, and which zone it is in, to the 'Unresponsive Devices' tag.
 
   Example flow: https://github.com/AltonV/HomeyScripts/blob/main/pictures/get-non-reporting-devices-example-flow.png
 
-  Returns true if any devices haven't reported in the specified time
-  and outputs a list of devices to a tag that can be used in flows
-
-  Argument:
-    The script can take two numbers separated by | as an argument.
-    First number changes value of 'notReportedForDays' and the second changes 'notReportedForDaysBattery'.
-
   Variables:
-    ignoredNames: list of ignored names separated by |.
-    Uses partial matching. Case sensitive.
+    defaultThreshold:
+      The default threshold in hours.
 
-    notReportedForDays: How long ago in days where the device should count as offline
-    Overridden if the script is run with an argument.
+    capabilityThresholds:
+      Custom thresholds, in hours, for specific capabilities.
+      The list of capabilities can be found here. Use the ID.
+      https://apps-sdk-v3.developer.homey.app/tutorial-device-capabilities.html
 
-    notReportedForDaysBattery: Same as 'notReportedForDays'
-    but for devices that only reports battery status
+    ignoredNames:
+      List of names that will be ignored.
+      Uses case-sensitive partial matching.
 
-    ignoredApps: ignored appids separated by |.
-    By default homeys built-in virtual devices and the app Virtual Devices is ignored
-    You can get the appid from the app store URL.
+    ignoredApps:
+      List of apps to ignore.
+      I would recommend using the app ID, which you can get from the app store URL.
 
-    ignoredClasses: ignored classids separated by |.
-    https://apps-sdk-v3.developer.homey.app/tutorial-device-classes.html
+    ignoredClasses: list of device classes to ignore.
+      Use the class IDs from this list
+      https://apps-sdk-v3.developer.homey.app/tutorial-device-classes.html
 
-    tagName: the name of the tag where the output is written to.
+    tagName:
+      The name of the tag where the output is saved.
 
 */
 
-let notReportedForDays = 7;
-let notReportedForDaysBattery = 20;
+let defaultThreshold = 12;
 
-const ignoredNames = "";
-const ignoredApps = "vdevice|com.arjankranenburg.virtual";
-const ignoredClasses = "";
+let capabilityThresholds = {
+  "measure_battery": 168, // Battery status is usually reported very rarely.
+  "measure_temperature": 1,
+};
+
+let ignoredNames = [
+  //"Keyfob",
+];
+let ignoredApps = [
+  "virtualdriverinfrared", // Infrared devices
+  //"virtualsocket", // Built-in virtual socket
+  //"virtualbutton", // Built-in virtual button
+  //"com.arjankranenburg.virtual", // Virtual Devices app
+  //"nl.qluster-it.DeviceCapabilities", // Device Capabilities app
+];
+let ignoredClasses = [
+  //"remote",
+  //"sprinkler",
+];
 
 const tagName = "Unresponsive Devices";
 
-if (args[0]) {
-  let argParts = args[0].split('|');
-  if (argParts.length > 1) {
-    notReportedForDays = parseInt(argParts[0]);
-    notReportedForDaysBattery = parseInt(argParts[1]);
-  } else {
-    notReportedForDays = parseInt(args[0]);
-  }
-  if (isNaN(notReportedForDays) || isNaN(notReportedForDaysBattery)) {
-    throw new Error("Argument must be a number");
-  }
-}
 
-const date = new Date();
-date.setDate(date.getDate() - notReportedForDays);
-const dateBattery = new Date();
-dateBattery.setDate(dateBattery.getDate() - notReportedForDaysBattery);
+//===============================================
+const toMs = (h = 0, m = 0, s = 0) => ((h * 60 * 60 + m * 60 + s) * 1000);
+
+ignoredNames = ignoredNames.join("|");
+ignoredApps = ignoredApps.join("|");
+
+// Convert to timestamps
+for (const [c, t] of Object.entries(capabilityThresholds)) {
+  capabilityThresholds[c] = Date.now() - toMs(t);
+}
+defaultThreshold = Date.now() - toMs(defaultThreshold);
 
 // Get all devices and zones
 const devices = await Homey.devices.getDevices();
 const zones = await Homey.zones.getZones();
 
-let result = false;
-let resultText = "";
+let result = "";
 
 // Loop over all devices
 for (const device of Object.values(devices)) {
   if (!device.capabilitiesObj || device.capabilities.length == 0) continue;
   if (ignoredNames && device.name.match(ignoredNames)) continue;
-  if (ignoredApps && device.ownerUri.match(ignoredApps)) continue;
-  if (ignoredClasses && device.class.match(ignoredClasses)) continue;
+  if (ignoredApps && device.driverId.match(ignoredApps)) continue;
+  if (ignoredClasses.includes(device.virtualClass || device.class)) continue;
 
-  let lastUpdate = 0;
-
-  // Check if the device only reports battery status
-  let onlyBattery = false;
-  if (device.capabilities.includes("measure_battery") && device.capabilities.length == 1) {
-    onlyBattery = true;
-  }
+  let updated = false;
 
   // Loop over all capabilities
   for (const capability of Object.values(device.capabilitiesObj)) {
-    if (lastUpdate < capability.lastUpdated) {
-      lastUpdate = capability.lastUpdated;
-    }
+    updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold))
   }
-  if ((lastUpdate <= date && !onlyBattery) || (lastUpdate <= dateBattery && onlyBattery)) {
-    result = true;
-    resultText += device.name + " - " + zones[device.zone].name + "\n";
-  }
+
+  if (!updated) result += device.name + " - " + zones[device.zone].name + "\n";
 }
 
-console.log(resultText);
+console.log(result);
 
-await tag(tagName, resultText);
+await tag(tagName, result);
 
-return result;
+return result.length > 0;
