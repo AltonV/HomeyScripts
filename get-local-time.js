@@ -18,7 +18,7 @@ log(time1)
 
 // Local time with more options
 // More options here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat
-const time2 = new Date().toLocaleString(sys.country, {
+const time2 = new Date().toLocaleString(sys.language + "-" + sys.country, {
   timeZone: sys.timezone,
   hour: '2-digit',
   minute: '2-digit'
