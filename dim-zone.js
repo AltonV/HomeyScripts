@@ -2,7 +2,7 @@
   Dims all lights in the specified zones either with an absolute or relative value.
   If no zone is specified it dims all lights.
   Can also turn on/off non-dimmable lights if the other lights are over/under a specific threshold.
-  Updated: 2024-05-12
+  Updated: 2025-03-25
 
   Argument:
     The dim value and zones (optional) separated by |.
@@ -36,10 +36,10 @@ let relative = false;
 if (args[0]) {
   args = args[0].split("|");
   dimVal = parseInt(args[0]);
-  if (dimVal || dimVal == 0) {
-    if (args[0].charAt(0) == "+" || args[0].charAt(0) == "-") relative = true;
+  if (dimVal || dimVal === 0) {
+    if (args[0].charAt(0) === "+" || args[0].charAt(0) === "-") relative = true;
     args.shift();
-    dimVal = Math.min(1, Math.max(0, dimVal / 100));
+    dimVal = Math.min(1, Math.max(-1, dimVal / 100));
   } else {
     throw new Error("Not a number");
   }
@@ -82,7 +82,7 @@ for (const device of Object.values(devices)) {
   }
 }
 
-if (nonDimDevices.length == 0) return;
+if (nonDimDevices.length === 0) return;
 
 // Calculate the average dim value
 var dimAvg = _.mean(dimValArr);
