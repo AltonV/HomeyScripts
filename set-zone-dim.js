@@ -60,25 +60,32 @@ if (include_subzones) for (const a of args) {
   allZonesId = allZonesId.concat((await getSubZones(a)).map(i => i.id));
 }
 
-for (const device of Object.values(devices)) {
+// Filter out devices
+let devicesFiltered = Object.values(devices).filter(function (device) {
   // Check if the device is a light
-  if (device.class !== 'light' && device.virtualClass !== 'light') continue;
+  if (device.class !== 'light' && device.virtualClass !== 'light') return false;
 
   // Simple zone matching
-  if (args.length && !include_subzones && !args.includes(zones[device.zone].name)) continue;
+  if (args.length && !include_subzones && !args.includes(zones[device.zone].name)) return false;
 
   // Advanced zone matching
-  if (args.length && include_subzones && !allZonesId.includes(device.zone)) continue;
+  if (args.length && include_subzones && !allZonesId.includes(device.zone)) return false;
 
-  if (device.capabilities.includes('dim')) {
-    let val = (relative ? device.capabilitiesObj.dim.value + dimVal : dimVal);
-    setDeviceProperty(device.id, 'dim', val, duration);  // Dim the light
-    dimValArr.push(val);
-    if (delay_between_devices > 0) await wait(delay_between_devices);
-
-  } else if (device.capabilitiesObj.onoff && non_dim_threshold > 0) {
-    nonDimDevices.push(device);
+  // Device is not a dimmable device
+  if (!device.capabilities.includes('dim')) {
+    if (non_dim_threshold > 0) nonDimDevices.push(device);
+    return false;
   }
+
+  return true;
+});
+
+for (const device of devicesFiltered) {
+  let val = (relative ? device.capabilitiesObj.dim.value + dimVal : dimVal);
+  setDeviceProperty(device.id, 'dim', val, duration);  // Dim the light
+  dimValArr.push(val);
+
+  if (delay_between_devices > 0) await wait(delay_between_devices);
 }
 
 if (nonDimDevices.length === 0) return;
