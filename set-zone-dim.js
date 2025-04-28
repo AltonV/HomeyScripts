@@ -2,7 +2,7 @@
   Dims all lights in the specified zones either with an absolute or relative value.
   If no zone is specified it dims all lights.
   Can also turn on/off non-dimmable lights if the other lights are over/under a specific threshold.
-  Updated: 2025-04-21
+  Updated: 2025-04-29
 
   Argument:
     The dim value and zones (optional) separated by |.
@@ -72,7 +72,7 @@ for (const device of Object.values(devices)) {
 
   if (device.capabilities.includes('dim')) {
     let val = (relative ? device.capabilitiesObj.dim.value + dimVal : dimVal);
-    setDeviceProperty(device.id, 'dim', val, 0.5);  // Dim the light
+    setDeviceProperty(device.id, 'dim', val, duration);  // Dim the light
     dimValArr.push(val);
     if (delay_between_devices > 0) await wait(delay_between_devices);
 
