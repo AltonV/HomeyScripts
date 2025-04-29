@@ -32,8 +32,8 @@ if (!args[0]) {
 }
 
 // Parse argument
-const color = args.shift();
 args = args[0].split("|");
+const color = args.shift();
 
 const devices = await Homey.devices.getDevices();
 const zones = await Homey.zones.getZones();
