@@ -21,12 +21,19 @@
 
     delay_between_devices: The delay between commands to devices in milliseconds.
 
+    ignoreDevices: A list of devices to ignore.
+    You can either use the device ID or name.
+
 */
 
 const duration = 0.5;
 const include_subzones = true;
 const non_dim_threshold = 0;
 const delay_between_devices = 0;
+
+const ignoreDevices = [
+  //'43b17eb6-0c0d-4e20-9e23-dd1579fa7c3b',
+];
 
 
 
@@ -64,6 +71,9 @@ if (include_subzones) for (const a of args) {
 let devicesFiltered = Object.values(devices).filter(function (device) {
   // Check if the device is a light
   if (device.class !== 'light' && device.virtualClass !== 'light') return false;
+
+  // Ignore devices
+  if (ignoreDevices.includes(device.id) || ignoreDevices.includes(device.name)) return false;
 
   // Simple zone matching
   if (args.length && !include_subzones && !args.includes(zones[device.zone].name)) return false;
