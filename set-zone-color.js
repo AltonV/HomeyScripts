@@ -1,7 +1,7 @@
 /*
   Set the color of all supported lights in the specified zones.
   If no zone is specified it changes the color of all lights.
-  Updated: 2025-04-21
+  Updated: 2025-04-29
 
   Argument:
     The dim value and zones (optional) separated by |.
@@ -17,11 +17,18 @@
 
     delay_between_devices: The delay between commands to devices in milliseconds.
 
+    ignoreDevices: A list of devices to ignore.
+    You can either use the device ID or name.
+
 */
 
 const duration = 0.5;
 const include_subzones = true;
 const delay_between_devices = 0;
+
+const ignoreDevices = [
+  //'43b17eb6-0c0d-4e20-9e23-dd1579fa7c3b',
+];
 
 
 
@@ -45,20 +52,29 @@ if (include_subzones) for (const a of args) {
   allZonesId = allZonesId.concat((await getSubZones(a)).map(i => i.id));
 }
 
-for (const device of Object.values(devices)) {
+// Filter out devices
+let devicesFiltered = Object.values(devices).filter(function (device) {
   // Check if the device is a light
-  if (device.class !== 'light' && device.virtualClass !== 'light') continue;
+  if (device.class !== 'light' && device.virtualClass !== 'light') return false;
+
+  // Ignore devices
+  if (ignoreDevices.includes(device.id) || ignoreDevices.includes(device.name)) return false;
 
   // Simple zone matching
-  if (args.length && !include_subzones && !args.includes(zones[device.zone].name)) continue;
+  if (args.length && !include_subzones && !args.includes(zones[device.zone].name)) return false;
 
   // Advanced zone matching
-  if (args.length && include_subzones && !allZonesId.includes(device.zone)) continue;
+  if (args.length && include_subzones && !allZonesId.includes(device.zone)) return false;
 
-  if (['light_hue', 'light_saturation'].every(c => device.capabilities.includes(c))) {
-    setDeviceProperty(device.id, 'color', color, duration);
-    if (delay_between_devices > 0) await wait(delay_between_devices);
-  }
+  // Check if the light supports color
+  if (!['light_hue', 'light_saturation'].every(c => device.capabilities.includes(c))) return false;
+
+  return true;
+});
+
+for (const device of devicesFiltered) {
+  setDeviceProperty(device.id, 'color', color, duration);
+  if (delay_between_devices > 0) await wait(delay_between_devices);
 }
 
 
