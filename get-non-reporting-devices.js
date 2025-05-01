@@ -28,6 +28,9 @@
       Use the class IDs from this list
       https://apps-sdk-v3.developer.homey.app/tutorial-device-classes.html
 
+    updateOnOffStatus:
+      Whether to update the onoff status of devices that has it.
+
     tagName:
       The name of the tag where the output is saved.
 
@@ -58,6 +61,8 @@ let ignoredClasses = [
   //"remote",
   //"sprinkler",
 ];
+
+const updateOnOffStatus = true;
 
 const tagName = "Unresponsive Devices";
 
@@ -107,6 +112,11 @@ for (const device of Object.values(devices)) {
     // If a specific threshold is set for the capability then it will be used, otherwise the default will be used.
     updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold))
   }
+
+  // Update onoff status if enabled
+  if (device.capabilities.includes('onoff')) try {
+    await device.setCapabilityValue('onoff', device.capabilitiesObj['onoff'].value);
+  } catch { }
 
   // Append the device to the output if it hasn't updated recently
   if (!updated) result += device.name + " - " + zones[device.zone].name + "\n";
