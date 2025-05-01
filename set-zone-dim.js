@@ -26,6 +26,10 @@
 
 */
 
+//===============================================
+//  CONFIG SECTION START
+//===============================================
+
 const duration = 0.5;
 const include_subzones = true;
 const non_dim_threshold = 0;
@@ -36,8 +40,9 @@ const ignoreDevices = [
 ];
 
 
-
-// ====================================== //
+//===============================================
+//  CONFIG SECTION END
+//===============================================
 
 if (!args[0]) {
   throw new Error("Must be run with an argument");
