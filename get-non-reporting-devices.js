@@ -85,10 +85,19 @@ let result = "";
 
 // Loop over all devices
 for (const device of Object.values(devices)) {
-  if (!device.capabilitiesObj || device.capabilities.length == 0) continue;
+  // Skip ignored devices
   if (ignoredNames && device.name.match(ignoredNames)) continue;
   if (ignoredApps && device.driverId.match(ignoredApps)) continue;
   if (ignoredClasses.includes(device.virtualClass || device.class)) continue;
+
+  // If the device is not available then include it and continue
+  if (!device.available) {
+    result += device.name + " - " + zones[device.zone].name + "\n";
+    continue;
+  }
+
+  // Skip devices with no capabilities
+  if (!device.capabilitiesObj || device.capabilities.length === 0) continue;
 
   let updated = false;
 
