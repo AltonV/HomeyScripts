@@ -1,5 +1,5 @@
 /*
-  Updated: 2025-05-02
+  Updated: 2025-05-04
 
   This script identifies unresponsive devices in Homey by checking if the last update time of their capabilities exceeds configured thresholds.
   A device is considered unresponsive only if all of its capabilities exceed the threshold.
@@ -85,6 +85,7 @@ defaultThreshold = Date.now() - toMs(defaultThreshold);
 // Get all devices and zones
 const devices = await Homey.devices.getDevices();
 const zones = await Homey.zones.getZones();
+const zigbeeState = await Homey.zigbee.getState();
 
 let result = "";
 
@@ -101,10 +102,14 @@ for (const device of Object.values(devices)) {
     continue;
   }
 
-  // Skip devices with no capabilities
-  if (!device.capabilitiesObj || device.capabilities.length === 0) continue;
-
   let updated = false;
+
+  // Check last update for Zigbee devices and use the default threshold
+  if (device.flags.includes('zigbee')) {
+    updated = updated || (zigbeeState.nodes[device.settings.zb_ieee_address].lastSeen >= defaultThreshold);
+
+    // Skip devices with no capabilities
+  } else if (!device.capabilitiesObj || device.capabilities.length === 0) continue;
 
   // Loop over all capabilities
   for (const capability of Object.values(device.capabilitiesObj)) {
