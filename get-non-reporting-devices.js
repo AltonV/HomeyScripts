@@ -110,7 +110,7 @@ for (const device of Object.values(devices)) {
   for (const capability of Object.values(device.capabilitiesObj)) {
     // Checks if the capability has updated recently
     // If a specific threshold is set for the capability then it will be used, otherwise the default will be used.
-    updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold))
+    updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold));
   }
 
   // Update onoff status if enabled
