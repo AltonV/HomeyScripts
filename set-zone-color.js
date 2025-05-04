@@ -4,7 +4,7 @@
   Updated: 2025-04-29
 
   Argument:
-    The dim value and zones (optional) separated by |.
+    The color in hex code and zones (optional) separated by |.
     Examples:
     '#ff0000|Kitchen|Hallway'
     '#00ff00|Living Room'
