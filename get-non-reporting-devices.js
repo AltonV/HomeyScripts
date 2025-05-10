@@ -103,7 +103,7 @@ for (const device of Object.values(devices)) {
     continue;
   }
 
-  let updated = false;
+  let updated = null;
 
   // Check last update for Zigbee devices and use the default threshold
   if (device.flags.includes('zigbee')) {
@@ -121,6 +121,9 @@ for (const device of Object.values(devices)) {
     // If a specific threshold is set for the capability then it will be used, otherwise the default will be used.
     updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold));
   }
+
+  // Ignore device if all capabilities have been ignored
+  if (updated === null) continue;
 
   // Update onoff status if enabled
   if (device.capabilities.includes('onoff')) try {
