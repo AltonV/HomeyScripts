@@ -1,5 +1,5 @@
 /*
-  Updated: 2025-05-04
+  Updated: 2025-05-10
 
   This script identifies unresponsive devices in Homey by checking if the last update time of their capabilities exceeds configured thresholds.
   A device is considered unresponsive only if all of its capabilities exceed the threshold.
@@ -13,6 +13,7 @@
 
     capabilityThresholds:
       Custom thresholds, in hours, for specific capabilities.
+      If set to 0 then it's ignored.
       The list of capabilities can be found here. Use the ID.
       https://apps-sdk-v3.developer.homey.app/tutorial-device-capabilities.html
 
@@ -78,7 +79,7 @@ ignoredApps = ignoredApps.join("|");
 
 // Convert to timestamps
 for (const [c, t] of Object.entries(capabilityThresholds)) {
-  capabilityThresholds[c] = Date.now() - toMs(t);
+  if (t > 0) capabilityThresholds[c] = Date.now() - toMs(t);
 }
 defaultThreshold = Date.now() - toMs(defaultThreshold);
 
@@ -113,6 +114,9 @@ for (const device of Object.values(devices)) {
 
   // Loop over all capabilities
   for (const capability of Object.values(device.capabilitiesObj)) {
+    // Ignore capability if threshold is set to 0
+    if (capabilityThresholds[capability.id] === 0) continue;
+
     // Checks if the capability has updated recently
     // If a specific threshold is set for the capability then it will be used, otherwise the default will be used.
     updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold));
