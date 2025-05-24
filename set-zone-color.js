@@ -1,7 +1,7 @@
 /*
   Set the color of all supported lights in the specified zones.
   If no zone is specified it changes the color of all lights.
-  Updated: 2025-04-29
+  Updated: 2025-05-24
 
   Argument:
     The color in hex code and zones (optional) separated by |.
@@ -86,7 +86,7 @@ for (const device of devicesFiltered) {
 async function getSubZones(startZone) {
   let zones = await Homey.zones.getZones();
   let result = _.filter(zones, { 'name': startZone });
-  if (!result[0]) return undefined;
+  if (!result.length) return [];
   let id = _.map(result, 'id');
 
   let arr = [];

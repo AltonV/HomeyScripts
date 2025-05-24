@@ -1,7 +1,7 @@
 /*
   Set the color temperature of all supported lights in the specified zones either with an absolute or relative percentage value.
   If no zone is specified it changes the color temperature all lights.
-  Updated: 2025-04-29
+  Updated: 2025-05-24
 
   Argument:
     The color temperature (in percentage) and zones (optional) separated by |.
@@ -95,7 +95,7 @@ for (const device of devicesFiltered) {
 async function getSubZones(startZone) {
   let zones = await Homey.zones.getZones();
   let result = _.filter(zones, { 'name': startZone });
-  if (!result[0]) return undefined;
+  if (!result.length) return [];
   let id = _.map(result, 'id');
 
   let arr = [];

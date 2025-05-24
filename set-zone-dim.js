@@ -2,7 +2,7 @@
   Dims all lights in the specified zones either with an absolute or relative value.
   If no zone is specified it dims all lights.
   Can also turn on/off non-dimmable lights if the other lights are over/under a specific threshold.
-  Updated: 2025-04-29
+  Updated: 2025-05-24
 
   Argument:
     The dim value and zones (optional) separated by |.
@@ -118,7 +118,7 @@ for (const device of Object.values(nonDimDevices)) {
 async function getSubZones(startZone) {
   let zones = await Homey.zones.getZones();
   let result = _.filter(zones, { 'name': startZone });
-  if (!result[0]) return undefined;
+  if (!result.length) return [];
   let id = _.map(result, 'id');
 
   let arr = [];
