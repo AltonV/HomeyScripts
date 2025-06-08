@@ -1,5 +1,5 @@
 /*
-  Updated: 2025-05-10
+  Updated: 2025-06-08
 
   This script identifies unresponsive devices in Homey by checking if the last update time of their capabilities exceeds configured thresholds.
   A device is considered unresponsive only if all of its capabilities exceed the threshold.
@@ -126,7 +126,7 @@ for (const device of Object.values(devices)) {
   if (updated === null) continue;
 
   // Update onoff status if enabled
-  if (device.capabilities.includes('onoff')) try {
+  if (device.capabilities.includes('onoff') && !device.flags.includes('satelliteMode')) try {
     await device.setCapabilityValue('onoff', device.capabilitiesObj['onoff'].value);
   } catch { }
 
