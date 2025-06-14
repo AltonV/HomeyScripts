@@ -1,7 +1,7 @@
 /*
   Set the color temperature of all supported lights in the specified zones either with an absolute or relative percentage value.
   If no zone is specified it changes the color temperature all lights.
-  Updated: 2025-05-24
+  Updated: 2025-06-14
 
   Argument:
     The color temperature (in percentage) and zones (optional) separated by |.
@@ -17,6 +17,9 @@
 
     delay_between_devices: The delay between commands to devices in milliseconds.
 
+    use_group_instead: If set to true, use the groups instead of the individual devices.
+      If set to false, use the individual devices and ignore groups.
+
     ignoreDevices: A list of devices to ignore.
     You can either use the device ID or name.
 
@@ -29,6 +32,7 @@
 const duration = 0.5;
 const include_subzones = true;
 const delay_between_devices = 0;
+const use_group_instead = false;
 
 const ignoreDevices = [
   //'43b17eb6-0c0d-4e20-9e23-dd1579fa7c3b',
@@ -81,6 +85,10 @@ let devicesFiltered = Object.values(devices).filter(function (device) {
 
   // Check if the light supports color temperature
   if (!device.capabilities.includes('light_temperature')) return false;
+
+  // Filter out either groups or devices that are part of groups
+  if (use_group_instead && device.group ||
+    !use_group_instead && device.driverId.includes('virtualdrivergroup')) return false;
 
   return true;
 });

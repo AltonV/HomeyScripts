@@ -2,7 +2,7 @@
   Dims all lights in the specified zones either with an absolute or relative value.
   If no zone is specified it dims all lights.
   Can also turn on/off non-dimmable lights if the other lights are over/under a specific threshold.
-  Updated: 2025-05-24
+  Updated: 2025-06-14
 
   Argument:
     The dim value and zones (optional) separated by |.
@@ -21,6 +21,9 @@
 
     delay_between_devices: The delay between commands to devices in milliseconds.
 
+    use_group_instead: If set to true, use the groups instead of the individual devices.
+      If set to false, use the individual devices and ignore groups.
+
     ignoreDevices: A list of devices to ignore.
     You can either use the device ID or name.
 
@@ -34,6 +37,7 @@ const duration = 0.5;
 const include_subzones = true;
 const non_dim_threshold = 0;
 const delay_between_devices = 0;
+const use_group_instead = false;
 
 const ignoreDevices = [
   //'43b17eb6-0c0d-4e20-9e23-dd1579fa7c3b',
@@ -85,6 +89,10 @@ let devicesFiltered = Object.values(devices).filter(function (device) {
 
   // Advanced zone matching
   if (args.length && include_subzones && !allZonesId.includes(device.zone)) return false;
+
+  // Filter out either groups or devices that are part of groups
+  if (use_group_instead && device.group ||
+    !use_group_instead && device.driverId.includes('virtualdrivergroup')) return false;
 
   // Device is not a dimmable device
   if (!device.capabilities.includes('dim')) {
