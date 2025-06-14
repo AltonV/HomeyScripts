@@ -1,9 +1,12 @@
 /*
-  Updated: 2025-06-08
+  Updated: 2025-06-14
 
   This script identifies unresponsive devices in Homey by checking if the last update time of their capabilities exceeds configured thresholds.
   A device is considered unresponsive only if all of its capabilities exceed the threshold.
   The script returns true if any device is unresponsive and add the affected devices, and which zone it is in, to the 'Unresponsive Devices' tag.
+
+  There are some lines in the config section that are starting with //. Those are ignored and are there as examples.
+  You can remove the // at the beginning if you want to use that example.
 
   Example flow: https://github.com/AltonV/HomeyScripts/blob/main/pictures/get-non-reporting-devices-example-flow.png
 
@@ -55,6 +58,7 @@ let ignoredApps = [
   "virtualdriverinfrared", // Infrared devices
   //"virtualsocket", // Built-in virtual socket
   //"virtualbutton", // Built-in virtual button
+  //"virtualdrivergroup", // Built-in groups
   //"com.arjankranenburg.virtual", // Virtual Devices app
   //"nl.qluster-it.DeviceCapabilities", // Device Capabilities app
 ];
