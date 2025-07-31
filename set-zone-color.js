@@ -34,7 +34,7 @@ const include_subzones = true;
 const delay_between_devices = 0;
 const use_group_instead = false;
 
-const ignoreDevices = [
+const ignore_devices = [
   //'43b17eb6-0c0d-4e20-9e23-dd1579fa7c3b',
 ];
 
@@ -67,7 +67,7 @@ let devicesFiltered = Object.values(devices).filter(function (device) {
   if (device.class !== 'light' && device.virtualClass !== 'light') return false;
 
   // Ignore devices
-  if (ignoreDevices.includes(device.id) || ignoreDevices.includes(device.name)) return false;
+  if (ignore_devices.includes(device.id) || ignore_devices.includes(device.name)) return false;
 
   // Simple zone matching
   if (args.length && !include_subzones && !args.includes(zones[device.zone].name)) return false;
