@@ -1,5 +1,5 @@
 /*
-  Updated: 2025-06-14
+  Updated: 2025-08-24
 
   This script identifies unresponsive devices in Homey by checking if the last update time of their capabilities exceeds configured thresholds.
   A device is considered unresponsive only if all of its capabilities exceed the threshold.
@@ -16,9 +16,12 @@
 
     capabilityThresholds:
       Custom thresholds, in hours, for specific capabilities.
-      If set to 0 then it's ignored.
+      If set to 0, then that capability is ignored.
       The list of capabilities can be found here. Use the ID.
       https://apps-sdk-v3.developer.homey.app/tutorial-device-capabilities.html
+
+    singleCapabilityThresholds:
+      The threshold that will be used if the only capability that the device has is that one.
 
     ignoredNames:
       List of names that will be ignored.
@@ -47,8 +50,12 @@
 let defaultThreshold = 12;
 
 let capabilityThresholds = {
-  "measure_battery": 168, // Battery status is usually reported very rarely.
+  "measure_battery": 0,
   "measure_temperature": 1,
+};
+
+singleCapabilityThresholds = {
+  "measure_battery": 168, // Battery status is usually reported very rarely.
 };
 
 let ignoredNames = [
@@ -116,14 +123,21 @@ for (const device of Object.values(devices)) {
     // Skip devices with no capabilities
   } else if (!device.capabilitiesObj || device.capabilities.length === 0) continue;
 
-  // Loop over all capabilities
-  for (const capability of Object.values(device.capabilitiesObj)) {
-    // Ignore capability if threshold is set to 0
-    if (capabilityThresholds[capability.id] === 0) continue;
+  // If the device only has one capability and a threshold is set for that
+  if (device.capabilities.length === 1 && singleCapabilityThresholds[device.capabilities[0]]) {
+    const capability = Object.values(device.capabilitiesObj)[0];
+    updated = updated || (capability.lastUpdated >= singleCapabilityThresholds[device.capabilities[0]]);
 
-    // Checks if the capability has updated recently
-    // If a specific threshold is set for the capability then it will be used, otherwise the default will be used.
-    updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold));
+  } else {
+    // Loop over all capabilities
+    for (const capability of Object.values(device.capabilitiesObj)) {
+      // Ignore capability if threshold is set to 0
+      if (capabilityThresholds[capability.id] === 0) continue;
+
+      // Checks if the capability has updated recently
+      // If a specific threshold is set for the capability then it will be used, otherwise the default will be used.
+      updated = updated || (capability.lastUpdated >= (capabilityThresholds[capability.id] || defaultThreshold));
+    }
   }
 
   // Ignore device if all capabilities have been ignored
