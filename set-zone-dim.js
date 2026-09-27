@@ -1,8 +1,9 @@
 /*
   Dims all lights in the specified zones either with an absolute or relative value.
   If no zone is specified it dims all lights.
+  If dim value is not a number it will toggle the lights instead.
   Can also turn on/off non-dimmable lights if the other lights are over/under a specific threshold.
-  Updated: 2025-06-14
+  Updated: 2026-09-27
 
   Argument:
     The dim value and zones (optional) separated by |.
@@ -48,12 +49,30 @@ const ignore_devices = [
 //  CONFIG SECTION END
 //===============================================
 
+const duration = 0.5;
+const include_subzones = true;
+const non_dim_threshold = 0;
+const delay_between_devices = 0;
+const use_group_instead = false;
+
+const ignore_devices = [
+  '43b17eb6-0c0d-4e20-9e23-dd1579fa7c3b', // Fönster - Datorrum
+'dcc2681d-fa31-4c95-820c-7f14531c177a', // Fönster - Kök
+'54c1864e-78bc-48b9-932e-2e96d09906c6', // Vägg    - Ute
+];
+
+
+//===============================================
+//  CONFIG SECTION END
+//===============================================
+
 if (!args[0]) {
   throw new Error("Must be run with an argument");
 }
 
 // Parse argument
 let relative = false;
+let toggle = false;
 args = args[0].split("|");
 let dimVal = parseInt(args[0]);
 if (dimVal || dimVal === 0) {
@@ -61,7 +80,7 @@ if (dimVal || dimVal === 0) {
   args.shift();
   dimVal = Math.min(1, Math.max(-1, dimVal / 100));
 } else {
-  throw new Error("Not a number");
+  toggle = true;
 }
 
 const devices = await Homey.devices.getDevices();
@@ -104,9 +123,13 @@ let devicesFiltered = Object.values(devices).filter(function (device) {
 });
 
 for (const device of devicesFiltered) {
-  let val = (relative ? device.capabilitiesObj.dim.value + dimVal : dimVal);
-  setDeviceProperty(device.id, 'dim', val, duration);  // Dim the light
-  dimValArr.push(val);
+  if (toggle) {
+    setDeviceProperty(device.id, 'toggle');  // Toggle
+  } else {
+    let val = (relative ? device.capabilitiesObj.dim.value + dimVal : dimVal);
+    setDeviceProperty(device.id, 'dim', val, duration);  // Dim the light
+    dimValArr.push(val);
+  }
 
   if (delay_between_devices > 0) await wait(delay_between_devices);
 }
@@ -118,7 +141,11 @@ var dimAvg = _.mean(dimValArr);
 
 // Turns on/off non-dimmable lights
 for (const device of Object.values(nonDimDevices)) {
-  device.setCapabilityValue('onoff', dimAvg >= non_dim_threshold / 100);
+  if (toggle) {
+    setDeviceProperty(device.id, 'toggle', val, duration);  // Toggle
+  } else {
+    device.setCapabilityValue('onoff', dimAvg >= non_dim_threshold / 100);
+  }
   if (delay_between_devices > 0) await wait(delay_between_devices);
 }
 
@@ -140,7 +167,7 @@ async function getSubZones(startZone) {
   return result;
 }
 
-async function setDeviceProperty(device, type, value, duration = 0) {
+async function setDeviceProperty(device, type, value = null, duration = 0) {
   await Homey.flow.runFlowCardAction({
     id: `homey:device:${device}:${type}`,
     duration: duration,
